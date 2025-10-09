@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>SLMP3 8DLNC Generator</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #111;
+      color: #ffffff;
+      text-align: center;
+      padding-top: 50px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+    }
+    .code {
+      font-size: 32px;
+      margin-top: 20px;
+      letter-spacing: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>SLMP3 Master 8DLNC</h1>
+  <p>Enter your 8DLNC Key:</p>
+  <input type="text" id="secret" value="" size="40">
+  <br>
+  <button onclick="startGenerator()">Generate Code</button>
+
+  <div class="code" id="code">--------</div>
+  <p id="timer"></p>
+
+  <script>
+    const ALPHANUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const INTERVAL = 25;
+
+    let timerId;
+
+    function to8ByteBuffer(timeBlock) {
+      const buf = new ArrayBuffer(8);
+      const view = new DataView(buf);
+      view.setBigUint64(0, BigInt(timeBlock));
+      return buf;
+    }
+
+    async function generateCode(secret) {
+      const timeBlock = Math.floor(Date.now() / 1000 / INTERVAL);
+      const keyData = new TextEncoder().encode(secret);
+      const key = await crypto.subtle.importKey(
+        "raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+      );
+
+      const msg = to8ByteBuffer(timeBlock);
+      const hash = new Uint8Array(await crypto.subtle.sign("HMAC", key, msg));
+
+      let code = "";
+      for (let i = 0; i < 8; i++) {
+        code += ALPHANUM[hash[i] % ALPHANUM.length];
+      }
+
+      return code;
+    }
+
+    async function updateCode(secret) {
+      const code = await generateCode(secret);
+      document.getElementById("code").textContent = code;
+
+      const secondsLeft = INTERVAL - (Math.floor(Date.now() / 1000) % INTERVAL);
+      document.getElementById("timer").textContent = `Renews In: ${secondsLeft}s`;
+    }
+
+    function startGenerator() {
+      const secret = document.getElementById("secret").value;
+      if (!secret) {
+        alert("No 8DLNC Key Entered");
+        return;
+      }
+
+      clearInterval(timerId);
+      updateCode(secret);
+      timerId = setInterval(() => updateCode(secret), 1000);
+    }
+  </script>
+<span> Don't Have a 8DLNC Key Yet? Create one Away! </span>
+<!-- 8DLNC Key Generator (Embed Version) -->
+<div id="keygen-container" style="
+  background:#121212;
+  color:#eee;
+  font-family:Arial, sans-serif;
+  text-align:center;
+  padding:2px;
+  border-radius:20px;
+  width:380px;
+  margin:auto;
+  box-shadow:0 0 10px rgba(0,0,0,0.4);
+">
+  <h2 style="margin-bottom:10px;"></h2>
+  <input type="text" id="dlkey" readonly autocomplete="off"
+    style="width:90%;padding:10px;font-size:1.1em;text-align:center;
+           background:#222;border:none;color:#fff;letter-spacing:2px;
+           margin-bottom:15px;border-radius:5px;" />
+  <div>
+    <button onclick="generate8DLNCKey()" style="
+      padding:8px 18px;background:#fff;color:#000;border:none;
+      border-radius:5px;cursor:pointer;margin:4px;">Generate Key</button>
+    <button onclick="copy8DLNCKey()" style="
+      padding:8px 18px;background:#fff;color:#000;border:none;
+      border-radius:5px;cursor:pointer;margin:4px;">Copy Key</button>
+  </div>
+</div>
+
+<script>
+function generate8DLNCKey() {
+  const length = 30;
+  const charset =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+    'abcdefghijklmnopqrstuvwxyz' +
+    '0123456789' +
+    '&@#!$%*+-_=<>?';
+  let key = '';
+  for (let i = 0; i < length; i++) {
+    key += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  document.getElementById('dlkey').value = key;
+}
+
+function copy8DLNCKey() {
+  const keyField = document.getElementById('dlkey');
+  const key = keyField.value.trim();
+  if (!key) {
+    alert('No 8DLNC Key generated yet!');
+    return;
+  }
+  navigator.clipboard.writeText(key)
+    .then(() => alert('8DLNC Key copied to clipboard!'))
+    .catch(() => alert('Error copying key.'));
+}
+</script>
+</body>
+</html>
