@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Is My 8DLNC Code Valid?</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial;
+      text-align: center;
+      padding-top: 50px;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px;
+    }
+    .result {
+      font-size: 24px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+ <h1>Is My 8DLNC Code Valid?</h1>
+  <p>Received Code:</p>
+  <input type="text" id="inputCode" placeholder="e.g. 12A34B56" maxlength="8">
+  <p>8DLNC Key:</p>
+  <input type="text" id="secretKey" value="" size="40" maxlength="30">
+  <br>
+  <button onclick="validateCode()">Verify</button>
+
+  <div class="result" id="validationResult"></div>
+
+  <script>
+    const ALPHANUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const INTERVAL = 25;
+
+    function to8ByteBuffer(timeBlock) {
+      const buf = new ArrayBuffer(8);
+      const view = new DataView(buf);
+      view.setBigUint64(0, BigInt(timeBlock));
+      return buf;
+    }
+
+    async function generate8DLNC(secret, timeBlock) {
+      const keyData = new TextEncoder().encode(secret);
+      const key = await crypto.subtle.importKey(
+        "raw", keyData, { name: "HMAC", hash: "SHA-512" }, false, ["sign"]
+      );
+
+      const msg = to8ByteBuffer(timeBlock);
+      const hash = new Uint8Array(await crypto.subtle.sign("HMAC", key, msg));
+
+      let code = "";
+      for (let i = 0; i < 8; i++) {
+        code += ALPHANUM[hash[i] % ALPHANUM.length];
+      }
+
+      return code;
+    }
+
+    async function validateCode() {
+      const inputCode = document.getElementById("inputCode").value.trim().toUpperCase();
+      const secret = document.getElementById("secretKey").value.trim();
+      const resultDiv = document.getElementById("validationResult");
+
+      if (!inputCode || inputCode.length !== 8) {
+        resultDiv.textContent = "⚠ Malformed code. Code must be 8 characters.";
+        return;
+      }
+
+      const timeNow = Math.floor(Date.now() / 1000 / INTERVAL);
+      let valid = false;
+      let debugLog = "";
+
+      for (let delta = -1; delta <= 1; delta++) {
+        const t = timeNow + delta;
+        const code = await generate8DLNC(secret, t);
+        debugLog += `T=${t} → ${code}\n`;
+        if (code === inputCode) {
+          valid = true;
+        }
+      }
+
+      resultDiv.textContent = valid
+        ? `☑ VALID`
+        : `☒ INVALID`;
+    }
+  </script>
+</body>
+</html>

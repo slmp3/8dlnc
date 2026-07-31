@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>SLMP3 Master 8DLNC</title>
-<link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
   <style>
     body {
-      font-family: monospace;
+      font-family: Arial;
       background: #111;
       color: #ffffff;
       text-align: center;
@@ -25,9 +25,10 @@
   </style>
 </head>
 <body>
+
   <h1>SLMP3 Master 8DLNC</h1>
   <p>Enter your 8DLNC Key:</p>
-  <input type="text" id="secret" value="" size="40">
+  <input type="text" id="secret" value="" size="40" maxlength="30">
   <br>
   <button onclick="startGenerator()">Generate Code</button>
 
@@ -51,7 +52,7 @@
       const timeBlock = Math.floor(Date.now() / 1000 / INTERVAL);
       const keyData = new TextEncoder().encode(secret);
       const key = await crypto.subtle.importKey(
-        "raw", keyData, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+        "raw", keyData, { name: "HMAC", hash: "SHA-512" }, false, ["sign"]
       );
 
       const msg = to8ByteBuffer(timeBlock);
@@ -140,5 +141,9 @@ function copy8DLNCKey() {
     .catch(() => alert('Error copying key.'));
 }
 </script>
+<hr style="border: 2px solid #fff" </hr>
+<a href="index2.html">
+<button>Check if it's Valid</button>
+</a>
 </body>
 </html>
