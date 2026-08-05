@@ -145,7 +145,7 @@ function copyf() {
 
     navigator.clipboard.writeText(code)
         .then(() => {
-           alert("Copied");
+           console.log("Copied");
         })
         .catch(err => {
             console.error("Error:", err);
