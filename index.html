@@ -32,9 +32,8 @@
   <br>
   <button onclick="startGenerator()">Generate Code</button>
 
-  <div class="code" id="code">--------</div>
+  <div class="code" id="code">--------</div> <button onclick="copyf()">Copy</button>
   <p id="timer"></p>
-
   <script>
     const ALPHANUM = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     const INTERVAL = 25;
@@ -139,6 +138,18 @@ function copy8DLNCKey() {
   navigator.clipboard.writeText(key)
     .then(() => alert('8DLNC Key copied to clipboard!'))
     .catch(() => alert('Error copying key.'));
+}
+
+function copyf() {
+    const code = document.getElementById("code").textContent;
+
+    navigator.clipboard.writeText(code)
+        .then(() => {
+           alert("Copied");
+        })
+        .catch(err => {
+            console.error("Error:", err);
+        });
 }
 </script>
 <hr style="border: 2px solid #fff" </hr>
